@@ -1,18 +1,33 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <Import Project="$(SolutionDir)Tool.ProjectTargets\Distance.ProjectTargets.targets"/>
-    <Import Project="$(MSBuildThisFileDirectory)$(MSBuildThisFileName).props"/>
+	<Import Project="$(SolutionDir)Tool.ProjectTargets\Distance.ProjectTargets.targets"/>
+	<Import Project="$(MSBuildThisFileDirectory)$(MSBuildThisFileName).props"/>
 
-    <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
-    
-    <Target Name="LocalPublish" 
-            AfterTargets="_CopyFilesMarkedCopyLocal" 
-            Condition="'$(Configuration)' == 'Release' ">
-        <MSBuild Condition="'$(AutoDeployOnVSBuild)'=='true' AND '$(DeployOnBuild)'!='true'" 
-            Projects="$(MSBuildProjectFullPath)"
-            Targets="Publish"
-            Properties="
-            DeployOnBuild=true;
-            PublishProfile=$(AutoDeployPublishProfileName);
-            BuildingInsideVisualStudio=True"/>
-    </Target>
+	<Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+	
+	<Target Name="LocalPublish">
+		<MSBuild 
+			Projects="$(MSBuildProjectFullPath)"
+			Targets="Publish"
+			Properties="
+			DeployOnBuild=true;
+			PublishProfile=$(AutoDeployPublishProfileName);
+			BuildingInsideVisualStudio=True"/>
+	</Target>
+
+	<Target Name="BuildPackage" DependsOnTargets="LocalPublish">
+		<ItemGroup>
+			<AppContent Update="*">
+				<Destination Condition="'%(AppContent.Destination)' == ''">%(AppContent.Identity)</Destination>
+			</AppContent>
+		</ItemGroup>
+		
+		<Copy SourceFiles="$(ProjectDir)$(PublishDir)%(AppContent.Identity)" DestinationFiles="$(BuildRoot)\%(AppContent.Destination)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false"/>
+	</Target>
+
+	<Target Name="CreateZip" 
+			DependsOnTargets="BuildPackage" 
+			AfterTargets="_CopyFilesMarkedCopyLocal"
+			Condition="'$(Configuration)' == 'Release' AND '$(AutoDeployOnVSBuild)'=='true' AND '$(DeployOnBuild)'!='true'">
+		<ZipDirectory SourceDirectory="$(BuildRoot)" DestinationFile="$(BuildRoot).zip" Overwrite="true"/>
+	</Target>
 </Project>

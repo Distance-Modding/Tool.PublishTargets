@@ -1,4 +1,9 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ItemGroup>
+		<AppContent Include="$(AssemblyName).exe" Condition="'$(RuntimeIdentifier)' == 'win-x86'"/>
+		<AppContent Include="$(AssemblyName)" Condition="'$(RuntimeIdentifier)' == 'linux-x64'"/>
+	</ItemGroup>
+
     <PropertyGroup>
         <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
         <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -6,4 +11,10 @@
         <AutoDeployOnVSBuild>true</AutoDeployOnVSBuild>
         <AutoDeployPublishProfileName Condition="'$(AutoDeployPublishProfileName)' == ''">FolderProfile</AutoDeployPublishProfileName>
     </PropertyGroup>
+
+	<PropertyGroup>
+		<PublishDir Condition="'$(PublishDir)' == ''">bin/publish</PublishDir>
+		<AppBuildFolder Condition="'$(AppBuildFolder)' == ''">$(SolutionName)</AppBuildFolder>
+		<BuildRoot>$(SolutionDir)Build\$(AppBuildFolder)</BuildRoot>
+	</PropertyGroup>
 </Project>
